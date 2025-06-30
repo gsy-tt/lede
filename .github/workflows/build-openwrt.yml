@@ -54,8 +54,7 @@ jobs:
           ls -l bin/targets     # 查看实际固件路径
 
       - name: 上传固件产物
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4  # 关键修改：从 v3 升级到 v4
         with:
           name: openwrt-ipq5332-be6500
-          path: bin/targets/*/*.bin  # 匹配所有 bin 格式固件
-      
+          path: bin/targets/*/*.bin  # 路径保持不变（根据实际产物路径调整）      
