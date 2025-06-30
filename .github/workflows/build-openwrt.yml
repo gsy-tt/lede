@@ -9,8 +9,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-22.04
-    container:
-      image: openwrtorg/sdk:builder-22.03
+    
 
     steps:
       - name: 依赖安装
