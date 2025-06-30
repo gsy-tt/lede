@@ -1,0 +1,50 @@
+name: Build OpenWrt for IPQ5332
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    container:
+      image: openwrtorg/sdk:builder-22.03
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Update feeds
+        run: |
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+
+      - name: Prepare configuration
+        run: |
+          # 复制模板到根目录 .config
+          cp .github/config-templates/.config.template .config
+          # 复制设备配置和设备树
+          cp -r .github/config-templates/ipq53xx.mk target/linux/qualcommax/image/
+          cp -r .github/config-templates/ipq5332-jdcloud-be6500.dts target/linux/qualcommax/dts/
+
+      - name: Configure build
+        run: |
+          make defconfig  # 根据模板生成完整配置
+          make oldconfig  # 确保配置兼容当前源码
+
+      - name: Build OpenWrt
+        run: |
+          make -j$(nproc) V=s
+
+      - name: Upload firmware as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: openwrt-ipq5332-firmware
+          path: |
+            bin/targets/qualcommax/ipq53xx/*.bin
+            bin/packages/arm_cortex-a53/base/*.ipk
+          retention-days: 7
