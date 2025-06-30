@@ -13,10 +13,9 @@ jobs:
       image: openwrtorg/sdk:builder-22.03
 
     steps:
-      - name: Checkout source code
-        uses: actions/checkout@v3
-        with:
-          submodules: recursive
+      - name: Checkout  .config
+        uses: actions/checkout@v4
+        
       - name: 依赖安装
         run:
           sudo apt update -y
@@ -46,7 +45,7 @@ jobs:
       - name: Build OpenWrt
         run: |
           cat .config
-          make -j$(nproc) V=s
+          make -j1 V=s
 
       - name: Upload firmware as artifact
         uses: actions/upload-artifact@v3
