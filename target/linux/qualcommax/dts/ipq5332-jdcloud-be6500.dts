@@ -1,0 +1,116 @@
+#include "qcom-ipq5332.dtsi"
+#include <dt-bindings/clock/qcom,gcc-ipq5332.h>
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/usb/otg.h>
+
+/ {
+    model = "JDCloud BE6500 (IPQ5332)";
+    compatible = "jdcloud,be6500", "qcom,ipq5332";
+
+    memory@80000000 {
+        reg = <0x0 0x80000000 0x0 0x40000000>;
+    };
+
+    chosen {
+        bootargs = "console=ttyMSM0,115200n8 earlycon=msm_geni_serial,0x0a000000";
+    };
+};
+
+/* 以太网控制器配置 */
+&ethernet {
+    compatible = "qcom,ipq5332-ethernet";
+    status = "okay";
+    qcom,mdio-delay = <100>;
+
+    mdio {
+        compatible = "snps,dwmac-mdio";
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        /* QCA8386 交换机 (4口全千兆) */
+        qca8386@0 {
+            compatible = "qca,qca8386";
+            reg = <0>;
+            qca,switch-mode = <1>;
+
+            /* VLAN 配置: 端口0(WAN)=VLAN0, 端口1-3(LAN)=VLAN1 */
+            qca,vlan-mapping = <
+                0 0 0 0 0
+                1 1 1 1 1
+                2 1 1 1 1
+                3 1 1 1 1
+            >;
+
+            ports {
+                #address-cells = <1>;
+                #size-cells = <0>;
+
+                port@0 { reg = <0>; label = "switch0-port0"; phy-mode = "rgmii-id"; };
+                port@1 { reg = <1>; label = "switch0-port1"; phy-mode = "rgmii-id"; };
+                port@2 { reg = <2>; label = "switch0-port2"; phy-mode = "rgmii-id"; };
+                port@3 { reg = <3>; label = "switch0-port3"; phy-mode = "rgmii-id"; };
+            };
+        };
+    };
+
+    ports {
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        /* WAN 口 (连接到交换机端口0) */
+        port@0 {
+            reg = <0>;
+            label = "wan";
+            phy-handle = <&qca8386_port0>;
+            qcom,phy-mode = "rgmii";
+        };
+
+        /* LAN 口 (连接到交换机端口1-3) */
+        port@1 { reg = <1>; label = "lan1"; phy-handle = <&qca8386_port1>; qcom,phy-mode = "rgmii"; };
+        port@2 { reg = <2>; label = "lan2"; phy-handle = <&qca8386_port2>; qcom,phy-mode = "rgmii"; };
+        port@3 { reg = <3>; label = "lan3"; phy-handle = <&qca8386_port3>; qcom,phy-mode = "rgmii"; };
+    };
+};
+
+/* 引用 QCA8386 交换机端口 */
+&qca8386@0 {
+    qca8386_port0: port@0 { reg = <0>; };
+    qca8386_port1: port@1 { reg = <1>; };
+    qca8386_port2: port@2 { reg = <2>; };
+    qca8386_port3: port@3 { reg = <3>; };
+};
+
+/* USB 3.0 控制器配置 */
+&usb3 {
+    status = "okay";
+    dr_mode = "host";  /* 主机模式 */
+    
+    /* USB 供电控制 (如果有 GPIO 控制供电) */
+    vbus-supply = <&reg_usb_vbus>;
+    qcom,usb3-phy-cal = <1>;  /* 启用 PHY 校准 */
+    
+    /* 端口配置 */
+    usb3-port@0 {
+        reg = <0>;
+        status = "okay";
+        usb-role = "host";
+        disable-over-current;  /* 如果没有过流检测 */
+    };
+};
+
+/* USB 3.0 供电调节器 (如果有 GPIO 控制) */
+reg_usb_vbus: regulator@0 {
+    compatible = "regulator-fixed";
+    regulator-name = "vbus";
+    regulator-min-microvolt = <5000000>;
+    regulator-max-microvolt = <5000000>;
+    gpio = <&gpio 12 GPIO_ACTIVE_HIGH>;  /* 根据实际 GPIO 引脚修改 */
+    enable-active-high;
+};
+
+/* Wi-Fi 配置 (保持之前的设置) */
+&wifi0 {
+    compatible = "qcom,ath11k";
+    status = "okay";
+    qcom,ath11k-calibration-variant = "QCN6224";
+};
