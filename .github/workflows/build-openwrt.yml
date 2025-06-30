@@ -13,9 +13,6 @@ jobs:
       image: openwrtorg/sdk:builder-22.03
 
     steps:
-      - name: Checkout  .config
-        uses: actions/checkout@v4
-        
       - name: 依赖安装
         run:
           sudo apt update -y
@@ -31,16 +28,9 @@ jobs:
         run: |
           ./scripts/feeds update -a
           ./scripts/feeds install -a
-
-      - name: Prepare configuration
-        run: |
-          # 复制模板到根目录 .config
-          cp .github/config-templates/.config.template .config
-          # 复制设备配置和设备树
-          cp -r .github/config-templates/ipq53xx.mk target/linux/qualcommax/image/
-          cp -r .github/config-templates/ipq5332-jdcloud-be6500.dts target/linux/qualcommax/dts/
-
-
+      
+      - name: clone仓库
+        uses: actions/checkout@v4
 
       - name: Build OpenWrt
         run: |
