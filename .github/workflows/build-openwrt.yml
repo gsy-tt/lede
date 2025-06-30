@@ -35,7 +35,6 @@ jobs:
         run: |
           cat .config
           make -j1 V=s
+          ls -l bin
 
-      - name: 发布到GitHub Release
-        if: steps.version.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true' && github.event_name == 'release'
-        uses: softprops/action-gh-release@v1
+      
