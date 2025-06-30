@@ -22,11 +22,6 @@ define Device/qcom_ipq5332_jdcloud_be6500
         luci \
         kmod-fs-ext4 \
         e2fsprogs \
-        kmod-gpio-button-hotplug  # 新增：按键热插拔支持（如复位键）
-    
-    memory@80000000 {
-        device_type = "memory";
-        reg = <0x80000000 0x40000000>;  # 0x40000000 = 1GB
-    };
+        kmod-gpio-button-hotplug  # 按键热插拔支持（如复位键）
 endef
 TARGET_DEVICES += qcom_ipq5332_jdcloud_be6500
