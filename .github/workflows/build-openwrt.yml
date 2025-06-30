@@ -13,12 +13,19 @@ jobs:
 
     steps:
       - name: 依赖安装
-        run:
+        run: |
           sudo apt-get update
-          
-          sudo apt-get full-upgrade
-          
-          sudo apt-get install -y ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential bzip2 ccache clang cmake cpio curl device-tree-compiler flex gawk gcc-multilib g++-multilib gettext  genisoimage git gperf haveged help2man intltool libc6-dev-i386 libelf-dev libfuse-dev libglib2.0-dev libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses5-dev libncursesw5-dev libpython3-dev libreadline-dev libssl-dev libtool llvm lrzsz msmtp ninja-build p7zip p7zip-full patch pkgconf python3 python3-pyelftools python3-setuptools qemu-utils rsync scons squashfs-tools subversion swig texinfo uglifyjs upx-ucl unzip vim wget xmlto xxd zlib1g-dev
+          sudo apt-get install -y \
+            ack antlr3 asciidoc autoconf automake autopoint binutils bison \
+            build-essential bzip2 ccache clang cmake cpio curl device-tree-compiler \
+            flex gawk gcc-multilib g++-multilib gettext genisoimage git gperf \
+            haveged help2man intltool libc6-dev-i386 libelf-dev libfuse-dev \
+            libglib2.0-dev libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev \
+            libncurses5-dev libncursesw5-dev libpython3-dev libreadline-dev \
+            libssl-dev libtool llvm lrzsz msmtp ninja-build p7zip p7zip-full \
+            patch pkgconf python3 python3-pyelftools python3-setuptools \
+            qemu-utils rsync scons squashfs-tools subversion swig texinfo \
+            uglifyjs upx-ucl unzip vim wget xmlto xxd zlib1g-dev
       - name: clone仓库
         uses: actions/checkout@v4
       - name: Update feeds
@@ -28,15 +35,27 @@ jobs:
       
       - name: 恢复.config配置
         run: | 
+          if [ ! -f ".config.old" ]; then
+            echo "错误：.config.old 文件不存在！"
+            exit 1
+          fi
           cp .config.old .config
-          grep -q "CONFIG_TARGET_qualcommax_DEVICE_qcom_ipq5332_jdcloud_be6500=y" .config || (echo "Missing device config!" && exit 1)
+          if ! grep -q "CONFIG_TARGET_qualcommax_DEVICE_qcom_ipq5332_jdcloud_be6500=y" .config; then
+            echo "错误：.config 缺少设备配置！"
+            exit 1
+          fi
       - name: Build OpenWrt
         env:
-          TERM: dumb          # 禁用终端交互
-          FORCE_UNSAFE_CONFIGURE: 1  # 跳过配置检查
+          TERM: dumb
+          FORCE_UNSAFE_CONFIGURE: 1
         run: |
           cat .config
-          make -j1 V=s
-          ls -l bin
+          make -j$(nproc) V=s  # 根据 CPU 核心数自动调整并行度
+          ls -l bin/targets     # 查看实际固件路径
 
+      - name: 上传固件产物
+        uses: actions/upload-artifact@v3
+        with:
+          name: openwrt-ipq5332-be6500
+          path: bin/targets/*/*.bin  # 匹配所有 bin 格式固件
       
