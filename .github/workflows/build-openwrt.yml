@@ -29,7 +29,8 @@ jobs:
       - name: 恢复.config配置
         run: | 
           cp .config.old .config
-
+          make defconfig
+          cat .config > config_after_restore 
       - name: Build OpenWrt
         run: |
           cat .config
