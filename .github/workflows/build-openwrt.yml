@@ -37,11 +37,6 @@ jobs:
           cat .config
           make -j1 V=s
 
-      - name: Upload firmware as artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: openwrt-ipq5332-firmware
-          path: |
-            bin/targets/qualcommax/ipq53xx/*.bin
-            bin/packages/arm_cortex-a53/base/*.ipk
-          retention-days: 7
+      - name: 发布到GitHub Release
+        if: steps.version.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true' && github.event_name == 'release'
+        uses: softprops/action-gh-release@v1
