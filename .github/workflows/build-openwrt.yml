@@ -29,10 +29,11 @@ jobs:
       - name: 恢复.config配置
         run: | 
           cp .config.old .config
-          make oldconfig
-          cat .config > config_after_restore 
           grep -q "CONFIG_TARGET_qualcommax_DEVICE_qcom_ipq5332_jdcloud_be6500=y" .config || (echo "Missing device config!" && exit 1)
       - name: Build OpenWrt
+        env:
+          TERM: dumb          # 禁用终端交互
+          FORCE_UNSAFE_CONFIGURE: 1  # 跳过配置检查
         run: |
           cat .config
           make -j1 V=s
