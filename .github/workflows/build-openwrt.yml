@@ -60,8 +60,8 @@ jobs:
           echo "========================"
 
           # 编译工具链（分步调试）
-          echo "开始编译工具链..."
-          make toolchain/install -j$(nproc) V=s 
+          #echo "开始编译工具链..."
+          #make toolchain/install -j$(nproc) V=s 
          
 
           # 编译固件（保留完整日志）
