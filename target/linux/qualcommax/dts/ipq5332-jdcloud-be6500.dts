@@ -89,23 +89,62 @@ reg_usb_vbus: regulator@0 {
     regulator-name = "vbus";
     regulator-min-microvolt = <5000000>;
     regulator-max-microvolt = <5000000>;
-    gpio = <&gpio 12 GPIO_ACTIVE_HIGH>;  /* 根据实际 GPIO 引脚修改 */
+    gpio = <&gpio 12 GPIO_ACTIVE_HIGH>;  // 确认实际控制GPIO引脚号
     enable-active-high;
 };
 
-/* Wi-Fi 配置 (保持之前的设置) */
+/* 5.2G Wi-Fi 配置（示例：假设为第一个5G模块） */
 &wifi0 {
     compatible = "qcom,ath11k";
     status = "okay";
-    qcom,ath11k-calibration-variant = "QCN6224";
-    interrupts = <GIC_SPI 123 IRQ_TYPE_LEVEL_HIGH>;  # 需根据实际硬件调整中断号（示例值）
-    qcom,ssid = "JDCloud-BE6500-5G";  # 可选：默认 SSID 名称
+    qcom,ath11k-calibration-variant = "QCN6224-5.2G";  /* 5.2G校准数据变体名 */
+    interrupts = <GIC_SPI 123 IRQ_TYPE_LEVEL_HIGH>;  /* 实际中断号 */
+    qcom,ssid = "JDCloud-BE6500-5.2G";
+    ieee80211-freq-limit = <5170000 5330000>;  /* 5.2G频段范围（5170-5330 MHz） */
 };
+
+/* 5.8G Wi-Fi 配置（示例：假设为第二个5G模块） */
+&wifi1 {
+    compatible = "qcom,ath11k";
+    status = "okay";
+    qcom,ath11k-calibration-variant = "QCN6224-5.8G";  /* 5.8G校准数据变体名 */
+    interrupts = <GIC_SPI 124 IRQ_TYPE_LEVEL_HIGH>;  /* 实际中断号 */
+    qcom,ssid = "JDCloud-BE6500-5.8G";
+    ieee80211-freq-limit = <5490000 5835000>;  /* 5.8G频段范围（5490-5835 MHz） */
+};
+
+/* 2.4G Wi-Fi 配置 */
+&wifi2 {
+    compatible = "qcom,ath10k";  /* 假设2.4G使用ath10k驱动 */
+    status = "okay";
+    qcom,ath10k-calibration-variant = "QCN5054";  /* 2.4G校准数据变体名 */
+    interrupts = <GIC_SPI 125 IRQ_TYPE_LEVEL_HIGH>;  /* 实际中断号 */
+    qcom,ssid = "JDCloud-BE6500-2.4G";
+    ieee80211-freq-limit = <2412000 2484000>;  /* 2.4G频段范围（2412-2484 MHz） */
+};
+
 
 gpio-leds {
     qpf4559-pa {
         label = "qpf4559:pa-en";
         gpios = <&gpio 12 GPIO_ACTIVE_HIGH>;  # 假设GPIO12控制5G PA
+    };
+};
+
+leds {
+    compatible = "gpio-leds";
+    status_led: status {
+        label = "green:status";
+        gpios = <&gpio 57 GPIO_ACTIVE_HIGH>;  // 实际GPIO引脚
+    };
+};
+
+keys {
+    compatible = "gpio-keys";
+    reset {
+        label = "reset";
+        gpios = <&gpio 56 GPIO_ACTIVE_LOW>;  // 实际复位键GPIO
+        linux,code = <KEY_RESTART>;
     };
 };
 
