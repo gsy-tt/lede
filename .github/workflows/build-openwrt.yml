@@ -57,20 +57,13 @@ jobs:
 
           # 编译工具链（分步调试）
           echo "开始编译工具链..."
-          make toolchain/install -j$(nproc) V=s > toolchain.log 2>&1
-          if [ $? -ne 0 ]; then
-            echo "工具链编译失败！查看 toolchain.log 获取详细错误"
-            exit 1
-          fi
+          make toolchain/install -j$(nproc) V=s 
+         
 
           # 编译固件（保留完整日志）
           echo "开始编译固件..."
-          make -j$(nproc) V=s > build.log 2>&1
-          if [ $? -ne 0 ]; then
-            echo "固件编译失败！查看 build.log 获取详细错误"
-            exit 1
-          fi
-
+          make -j$(nproc) V=s 
+       
           # 验证产物
           ls -l bin/targets
 
