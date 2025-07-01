@@ -50,6 +50,7 @@ jobs:
           FORCE_UNSAFE_CONFIGURE: 1
         run: |
           cat .config
+          make toolchain/install -j$(nproc) V=s  # 优先编译工具链
           make -j$(nproc) V=s  # 根据 CPU 核心数自动调整并行度
           ls -l bin/targets     # 查看实际固件路径
 
