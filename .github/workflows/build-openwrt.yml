@@ -25,7 +25,11 @@ jobs:
             libssl-dev libtool llvm lrzsz msmtp ninja-build p7zip p7zip-full \
             patch pkgconf python3 python3-pyelftools python3-setuptools \
             qemu-utils rsync scons squashfs-tools subversion swig texinfo \
-            uglifyjs upx-ucl unzip vim wget xmlto xxd zlib1g-dev python3-distutils
+            uglifyjs upx-ucl unzip vim wget xmlto xxd zlib1g-dev python3-distutils build-essential ccache ecj fastjar file g++ gawk \
+            gettext git java-propose-classpath libelf-dev libncurses5-dev \
+            libncursesw5-dev libssl-dev python3 python3-distutils python3-setuptools \
+            python3-dev rsync subversion swig time unzip wget xmlto zlib1g-dev \
+            quilt autopoint libtool-bin gperf flex bison gettext-base asciidoc dos2unix
       - name: clone仓库
         uses: actions/checkout@v4
       - name: Update feeds
