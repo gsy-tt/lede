@@ -44,18 +44,46 @@ jobs:
             echo "错误：.config 缺少设备配置！"
             exit 1
           fi
-      - name: Build OpenWrt
+      - name: Build OpenWrt（详细调试）
         env:
           TERM: dumb
           FORCE_UNSAFE_CONFIGURE: 1
         run: |
-          cat .config
-          make toolchain/install -j$(nproc) V=s  # 优先编译工具链
-          make -j$(nproc) V=s  # 根据 CPU 核心数自动调整并行度
-          ls -l bin/targets     # 查看实际固件路径
+          # 输出关键系统信息（内存/CPU）
+          echo "===== 系统资源信息 ====="
+          free -h
+          nproc
+          echo "========================"
+
+          # 编译工具链（分步调试）
+          echo "开始编译工具链..."
+          make toolchain/install -j$(nproc) V=s > toolchain.log 2>&1
+          if [ $? -ne 0 ]; then
+            echo "工具链编译失败！查看 toolchain.log 获取详细错误"
+            exit 1
+          fi
+
+          # 编译固件（保留完整日志）
+          echo "开始编译固件..."
+          make -j$(nproc) V=s > build.log 2>&1
+          if [ $? -ne 0 ]; then
+            echo "固件编译失败！查看 build.log 获取详细错误"
+            exit 1
+          fi
+
+          # 验证产物
+          ls -l bin/targets
 
       - name: 上传固件产物
         uses: actions/upload-artifact@v4  # 关键修改：从 v3 升级到 v4
         with:
           name: openwrt-ipq5332-be6500
           path: bin/targets/*/*.bin  # 路径保持不变（根据实际产物路径调整）      
+
+      - name: 上传编译日志
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: |
+            toolchain.log
+            build.log
