@@ -8,7 +8,8 @@
     compatible = "jdcloud,be6500", "qcom,ipq5332";
 
     memory@80000000 {
-        reg = <0x0 0x80000000 0x0 0x40000000>;
+        device_type = "memory";  # 补充 device_type 属性（标准要求）
+        reg = <0x80000000 0x40000000>;  # 格式：<起始地址 大小>（0x40000000 = 1GB）
     };
 
     chosen {
@@ -97,6 +98,8 @@ reg_usb_vbus: regulator@0 {
     compatible = "qcom,ath11k";
     status = "okay";
     qcom,ath11k-calibration-variant = "QCN6224";
+    interrupts = <GIC_SPI 123 IRQ_TYPE_LEVEL_HIGH>;  # 需根据实际硬件调整中断号（示例值）
+    qcom,ssid = "JDCloud-BE6500-5G";  # 可选：默认 SSID 名称
 };
 
 gpio-leds {
@@ -105,3 +108,5 @@ gpio-leds {
         gpios = <&gpio 12 GPIO_ACTIVE_HIGH>;  # 假设GPIO12控制5G PA
     };
 };
+
+
