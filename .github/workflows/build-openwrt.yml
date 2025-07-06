@@ -41,7 +41,7 @@ jobs:
       run: |
         sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc
         sudo apt-get update
-        sudo apt-get -y install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch python3 python2.7 unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs git-core gcc-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler g++-multilib antlr3 gperf wget curl swig rsync
+        sudo apt-get -y install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch python3 python2.7 unzip zlib1g-dev lib32gcc-s1 libc6-dev-i386 subversion flex uglifyjs git-core gcc-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler g++-multilib antlr3 gperf wget curl swig rsync
         sudo apt-get -y autoremove --purge
         sudo apt-get clean
         curl -fsSL https://raw.githubusercontent.com/immortalwrt/immortalwrt/master/scripts/feeds update -a
@@ -61,6 +61,8 @@ jobs:
         cd openwrt
         ../$DIY_P1_SH
         make defconfig
+        cat .config | grep TARGET_
+        cat .config | grep BE6500
 
     - name: Download Package
       run: |
@@ -70,6 +72,7 @@ jobs:
         find dl -size -1024c -exec rm -f {} \;
 
     - name: Compile Firmware
+      id: compile
       run: |
         cd openwrt
         echo -e "$(nproc) thread compile"
@@ -80,17 +83,38 @@ jobs:
         df -h
         echo "======================="
         du -h --max-depth=1 ./ | sort -hr
+        # 检查是否生成了固件文件
+        if [ ! -d "bin/targets" ]; then
+          echo "未找到固件输出目录"
+          exit 1
+        fi
+        # 列出所有可用的目标目录
+        echo "可用的目标目录:"
+        ls -l bin/targets
+        # 保存固件状态
+        if [ -n "$(ls -A bin/targets 2>/dev/null)" ]; then
+          echo "FIRMWARE_FOUND=true" >> $GITHUB_ENV
+        else
+          echo "FIRMWARE_FOUND=false" >> $GITHUB_ENV
+        fi
+
+    - name: Upload Build Log
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: build-log
+        path: openwrt/logs
 
     - name: Upload Bin Directory
       uses: actions/upload-artifact@v4
-      if: env.UPLOAD_BIN_DIR == 'true' && !cancelled()
+      if: env.UPLOAD_BIN_DIR == 'true' && env.FIRMWARE_FOUND == 'true' && !cancelled()
       with:
         name: OpenWrt_bin
         path: openwrt/bin
 
     - name: Organize Firmware Files
       id: organize
-      if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
+      if: env.UPLOAD_FIRMWARE == 'true' && env.FIRMWARE_FOUND == 'true' && !cancelled()
       run: |
         cd openwrt/bin/targets/*/*
         rm -rf packages
