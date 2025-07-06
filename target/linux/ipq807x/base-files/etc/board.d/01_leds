@@ -1,0 +1,28 @@
+#!/bin/sh
+
+. /lib/functions.sh
+. /lib/ipq807x.sh
+
+leds_setup() {
+    local board=$(ipq807x_board_name)
+
+    case "$board" in
+        be6500)
+            # Power LEDS
+            ucidef_add_led "power-blue" "Power Blue" "power:blue" "gpio"
+            ucidef_add_led "power-green" "Power Green" "power:green" "gpio"
+            ucidef_add_led "power-red" "Power Red" "power:red" "gpio"
+            ucidef_add_led "power-yellow" "Power Yellow" "power:yellow" "gpio"
+
+            # WiFi LEDS
+            ucidef_add_led "wifi-2g" "WiFi 2.4G" "wifi:2g" "gpio"
+            ucidef_add_led "wifi-5g" "WiFi 5G" "wifi:5g" "gpio"
+
+            # Button LEDS
+            ucidef_add_led "reset" "Reset" "reset" "gpio"
+            ucidef_add_led "wps" "WPS" "wps" "gpio"
+            ;;
+    esac
+}
+
+leds_setup
