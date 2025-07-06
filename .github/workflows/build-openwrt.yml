@@ -63,9 +63,9 @@ jobs:
 
     - name: Clone Source Code
       run: |
-        rm -rf lede  # 清理所有旧目录
-        git clone $REPO_URL -b $REPO_BRANCH lede  # 克隆到lede目录
-        cd lede
+        cd $GITHUB_WORKSPACE  # 确保在工作区根目录
+        rm -rf *  # 清理工作区所有文件
+        git clone $REPO_URL -b $REPO_BRANCH .  # 克隆到工作区根目录，不创建额外目录
         echo "当前目录: $(pwd)"
         ls -la  # 列出目录内容，确认结构
         echo "当前分支:"
@@ -77,7 +77,7 @@ jobs:
 
     - name: Update Feeds Script
       run: |
-        cd lede
+        cd $GITHUB_WORKSPACE
         # 备份原始脚本
         cp scripts/feeds scripts/feeds.bak
         # 从官方源更新feeds脚本
@@ -86,7 +86,7 @@ jobs:
 
     - name: Debug Feeds Command
       run: |
-        cd lede
+        cd $GITHUB_WORKSPACE
         echo "当前目录: $(pwd)"
         echo "feeds脚本权限: $(ls -l scripts/feeds)"
         echo "Perl版本: $(perl --version | head -n 1)"
@@ -98,10 +98,10 @@ jobs:
 
     - name: Load Custom Configuration
       run: |
-        [ -e files ] && cp -r files lede/files
-        [ -e $CONFIG_FILE ] && cp $CONFIG_FILE lede/.config
+        [ -e files ] && cp -r files $GITHUB_WORKSPACE/files
+        [ -e $CONFIG_FILE ] && cp $CONFIG_FILE $GITHUB_WORKSPACE/.config
         chmod +x $DIY_P1_SH $DIY_P2_SH
-        cd lede
+        cd $GITHUB_WORKSPACE
         ../$DIY_P1_SH
         make defconfig
         cat .config | grep TARGET_
@@ -109,7 +109,7 @@ jobs:
 
     - name: Download Package
       run: |
-        cd lede
+        cd $GITHUB_WORKSPACE
         make download -j8
         find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;
@@ -117,7 +117,7 @@ jobs:
     - name: Compile Firmware
       id: compile
       run: |
-        cd lede
+        cd $GITHUB_WORKSPACE
         echo -e "$(nproc) thread compile"
         make -j$(nproc) || make -j1 V=s
         echo "======================="
@@ -146,20 +146,20 @@ jobs:
       if: failure()
       with:
         name: build-log
-        path: lede/logs
+        path: $GITHUB_WORKSPACE/logs
 
     - name: Upload Bin Directory
       uses: actions/upload-artifact@v4
       if: env.UPLOAD_BIN_DIR == 'true' && env.FIRMWARE_FOUND == 'true' && !cancelled()
       with:
         name: OpenWrt_bin
-        path: lede/bin
+        path: $GITHUB_WORKSPACE/bin
 
     - name: Organize Firmware Files
       id: organize
       if: env.UPLOAD_FIRMWARE == 'true' && env.FIRMWARE_FOUND == 'true' && !cancelled()
       run: |
-        cd lede/bin/targets/*/*
+        cd $GITHUB_WORKSPACE/bin/targets/*/*
         rm -rf packages
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
         echo "::set-output name=status::success"
