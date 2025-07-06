@@ -40,17 +40,50 @@ jobs:
         DEBIAN_FRONTEND: noninteractive
       run: |
         sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc
+        sudo dpkg --add-architecture i386  # 启用32位架构支持
         sudo apt-get update
         sudo apt-get -y install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch python3 python2.7 unzip zlib1g-dev lib32gcc-s1 libc6-dev-i386 subversion flex uglifyjs git-core gcc-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler g++-multilib antlr3 gperf wget curl swig rsync
+        sudo apt-get install -y \
+            perl \
+            python3 \
+            python3-distutils \
+            python3-setuptools \
+            libxml-parser-perl \
+            libncurses5-dev \
+            gawk \
+            gettext
         sudo apt-get -y autoremove --purge
         sudo apt-get clean
-        curl -fsSL https://raw.githubusercontent.com/immortalwrt/immortalwrt/master/scripts/feeds update -a
 
     - name: Clone Source Code
       run: |
+        rm -rf openwrt  # 确保完全清理旧的源码
         git clone $REPO_URL -b $REPO_BRANCH openwrt
         cd openwrt
-        ./scripts/feeds update -a
+        # 检查源码仓库状态
+        echo "源码仓库信息:"
+        git log -1
+        git status
+
+    - name: Update Feeds Script
+      run: |
+        cd openwrt
+        # 备份原始脚本
+        cp scripts/feeds scripts/feeds.bak
+        # 从官方源更新feeds脚本
+        curl -fsSL https://raw.githubusercontent.com/openwrt/openwrt/master/scripts/feeds -o scripts/feeds
+        chmod +x scripts/feeds
+
+    - name: Debug Feeds Command
+      run: |
+        cd openwrt
+        echo "当前目录: $(pwd)"
+        echo "feeds脚本权限: $(ls -l scripts/feeds)"
+        echo "Perl版本: $(perl --version | head -n 1)"
+        echo "尝试执行feeds命令..."
+        ./scripts/feeds --help
+        ./scripts/feeds list
+        ./scripts/feeds update -a || { echo "更新feeds失败"; cat ./feeds.conf; exit 1; }
         ./scripts/feeds install -a
 
     - name: Load Custom Configuration
