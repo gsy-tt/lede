@@ -1,0 +1,27 @@
+#!/bin/sh
+
+. /lib/functions.sh
+. /lib/ipq807x.sh
+
+board_detect() {
+    local machine
+    local name
+
+    machine=$(cat /sys/firmware/devicetree/base/model)
+
+    case "$machine" in
+        *"BE6500"*)
+            name="be6500"
+            ;;
+        *)
+            name="generic"
+            ;;
+    esac
+
+    [ -z "$name" ] && name="generic"
+
+    ucidef_set_machine "$name"
+    ucidef_set_board_name "$machine"
+}
+
+board_detect
