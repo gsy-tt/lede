@@ -18,3 +18,17 @@ git clone https://github.com/jerrykuku/luci-app-argon-config.git package/lean/lu
 
 # 添加IPQ5332设备支持
 cp -r ../target/linux/ipq807x target/linux/
+
+# 添加内存优化配置
+cat >> .config << EOF
+# 内存优化
+CONFIG_KERNEL_SWAP=y
+CONFIG_KERNEL_ZSWAP=y
+CONFIG_KERNEL_ZSWAP_MAX_POOL_PERCENT=25
+CONFIG_KERNEL_ZSWAP_COMPRESSOR="zstd"
+CONFIG_KERNEL_ZBUD=y
+CONFIG_KERNEL_MEM_SLEEP_DEFAULT=y
+CONFIG_KERNEL_CGROUP_MEM_RES_CTLR=y
+CONFIG_KERNEL_CGROUP_MEM_RES_CTLR_SWAP=y
+CONFIG_KERNEL_CGROUP_MEM_RES_CTLR_SWAP_ENABLED=y
+EOF
