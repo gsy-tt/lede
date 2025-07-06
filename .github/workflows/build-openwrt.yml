@@ -114,7 +114,7 @@ jobs:
         
         # 列出所有feeds
         echo "===== 列出所有feeds ====="
-        ./scripts/feeds list
+        #./scripts/feeds list
 
     - name: Load Custom Configuration
       run: |
