@@ -55,25 +55,7 @@ jobs:
         sudo apt-get -y autoremove --purge
         sudo apt-get clean
 
-    - name: Check Repository Branches
-      run: |
-        echo "检查仓库分支..."
-        git ls-remote --heads $REPO_URL
-        echo "如果上面没有列出'$REPO_BRANCH'分支，请更新REPO_BRANCH变量"
 
-    - name: Clone Source Code
-      run: |
-        cd $GITHUB_WORKSPACE  # 确保在工作区根目录
-        rm -rf *  # 清理工作区所有文件
-        git clone $REPO_URL -b $REPO_BRANCH .  # 克隆到工作区根目录，不创建额外目录
-        echo "当前目录: $(pwd)"
-        ls -la  # 列出目录内容，确认结构
-        echo "当前分支:"
-        git branch --show-current
-        # 检查源码仓库状态
-        echo "源码仓库信息:"
-        git log -1
-        git status
 
     - name: Update Feeds Script
       run: |
