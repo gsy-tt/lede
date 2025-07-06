@@ -1,0 +1,227 @@
+/*
+ * Copyright (C) 2023 OpenWrt.org
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ * Device Tree Source for JDCloud BE6500 (RE-CS-06) router
+ */
+
+/dts-v1/;
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/input/input.h>
+#include "qcom-ipq5332.dtsi"
+
+/ {
+    model = "JDCloud BE6500 (RE-CS-06)";
+    compatible = "qcom,ipq5332-be6500", "qcom,ipq5332";
+
+    aliases {
+        led-boot = &led_power_blue;
+        led-failsafe = &led_power_red;
+        led-running = &led_power_green;
+        led-upgrade = &led_power_yellow;
+    };
+
+    chosen {
+        bootargs = "console=ttyMSM0,115200n8 earlyprintk";
+    };
+
+    leds {
+        compatible = "gpio-leds";
+
+        led_power_blue: power-blue {
+            label = "power:blue";
+            gpios = <&gpio 4 GPIO_ACTIVE_HIGH>;
+            default-state = "off";
+        };
+
+        led_power_green: power-green {
+            label = "power:green";
+            gpios = <&gpio 5 GPIO_ACTIVE_HIGH>;
+            default-state = "off";
+        };
+
+        led_power_red: power-red {
+            label = "power:red";
+            gpios = <&gpio 6 GPIO_ACTIVE_HIGH>;
+            default-state = "off";
+        };
+
+        led_power_yellow: power-yellow {
+            label = "power:yellow";
+            gpios = <&gpio 7 GPIO_ACTIVE_HIGH>;
+            default-state = "off";
+        };
+
+        led_wifi_2g: wifi-2g {
+            label = "wifi:2g";
+            gpios = <&gpio 8 GPIO_ACTIVE_HIGH>;
+            default-state = "off";
+        };
+
+        led_wifi_5g: wifi-5g {
+            label = "wifi:5g";
+            gpios = <&gpio 9 GPIO_ACTIVE_HIGH>;
+            default-state = "off";
+        };
+    };
+
+    buttons {
+        compatible = "gpio-keys";
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        reset {
+            label = "Reset";
+            gpios = <&gpio 10 GPIO_ACTIVE_LOW>;
+            linux,code = <KEY_RESTART>;
+            debounce-interval = <200>;
+        };
+
+        wps {
+            label = "WPS";
+            gpios = <&gpio 11 GPIO_ACTIVE_LOW>;
+            linux,code = <KEY_WPS_BUTTON>;
+            debounce-interval = <200>;
+        };
+    };
+};
+
+&usb {
+    status = "okay";
+};
+
+&pcie {
+    status = "okay";
+};
+
+&mdio0 {
+    qca8386@0 {
+        compatible = "qca,qca8386";
+        reg = <0>;
+        qca,switch-mode = <2>;
+        qca,led-mode = <0>;
+        qca,link-monitor = <1>;
+        qca,port-config = <0 0 0 0 0>;
+        qca,port-status = <0 0 0 0 0>;
+        qca,port-vlan = <0 0 0 0 0>;
+        qca,port-pvid = <1 1 1 1 1>;
+        qca,port-rate = <0 0 0 0 0>;
+        qca,port-stp = <0 0 0 0 0>;
+        qca,port-allowed = <0x1F 0x1F 0x1F 0x1F 0x1F>;
+        qca,port-untagged = <0x01 0x02 0x04 0x08 0x10>;
+        qca,port-mtu = <9216 9216 9216 9216 9216>;
+        qca,port-speed = <0 0 0 0 0>;
+        qca,port-duplex = <0 0 0 0 0>;
+        qca,port-flow = <0 0 0 0 0>;
+        qca,port-priority = <0 0 0 0 0>;
+        qca,port-vlan-tagged = <0 0 0 0 0>;
+        qca,port-vlan-id = <1 1 1 1 1>;
+        qca,port-mirror = <0 0 0 0 0>;
+        qca,port-isolate = <0 0 0 0 0>;
+        qca,port-mtu-limit = <0 0 0 0 0>;
+        qca,port-eee = <0 0 0 0 0>;
+        qca,port-pause = <0 0 0 0 0>;
+        qca,port-tx-pause = <0 0 0 0 0>;
+        qca,port-rx-pause = <0 0 0 0 0>;
+        qca,port-promisc = <0 0 0 0 0>;
+        qca,port-multicast = <0 0 0 0 0>;
+        qca,port-broadcast = <0 0 0 0 0>;
+        qca,port-forward = <0 0 0 0 0>;
+        qca,port-drop = <0 0 0 0 0>;
+        qca,port-stats = <0 0 0 0 0>;
+        qca,port-rx-error = <0 0 0 0 0>;
+        qca,port-tx-error = <0 0 0 0 0>;
+        qca,port-rx-packet = <0 0 0 0 0>;
+        qca,port-tx-packet = <0 0 0 0 0>;
+        qca,port-rx-byte = <0 0 0 0 0>;
+        qca,port-tx-byte = <0 0 0 0 0>;
+        qca,port-rx-broadcast = <0 0 0 0 0>;
+        qca,port-tx-broadcast = <0 0 0 0 0>;
+        qca,port-rx-multicast = <0 0 0 0 0>;
+        qca,port-tx-multicast = <0 0 0 0 0>;
+        qca,port-rx-unicast = <0 0 0 0 0>;
+        qca,port-tx-unicast = <0 0 0 0 0>;
+        qca,port-rx-pause-frame = <0 0 0 0 0>;
+        qca,port-tx-pause-frame = <0 0 0 0 0>;
+        qca,port-rx-oversize = <0 0 0 0 0>;
+        qca,port-rx-fcs-error = <0 0 0 0 0>;
+        qca,port-rx-length-error = <0 0 0 0 0>;
+        qca,port-rx-align-error = <0 0 0 0 0>;
+        qca,port-rx-jabber = <0 0 0 0 0>;
+        qca,port-rx-undersize = <0 0 0 0 0>;
+        qca,port-rx-fragment = <0 0 0 0 0>;
+        qca,port-rx-error-packet = <0 0 0 0 0>;
+        qca,port-tx-error-packet = <0 0 0 0 0>;
+        qca,port-rx-control = <0 0 0 0 0>;
+        qca,port-tx-control = <0 0 0 0 0>;
+        qca,port-rx-pri0 = <0 0 0 0 0>;
+        qca,port-rx-pri1 = <0 0 0 0 0>;
+        qca,port-rx-pri2 = <0 0 0 0 0>;
+        qca,port-rx-pri3 = <0 0 0 0 0>;
+        qca,port-rx-pri4 = <0 0 0 0 0>;
+        qca,port-rx-pri5 = <0 0 0 0 0>;
+        qca,port-rx-pri6 = <0 0 0 0 0>;
+        qca,port-rx-pri7 = <0 0 0 0 0>;
+        qca,port-tx-pri0 = <0 0 0 0 0>;
+        qca,port-tx-pri1 = <0 0 0 0 0>;
+        qca,port-tx-pri2 = <0 0 0 0 0>;
+        qca,port-tx-pri3 = <0 0 0 0 0>;
+        qca,port-tx-pri4 = <0 0 0 0 0>;
+        qca,port-tx-pri5 = <0 0 0 0 0>;
+        qca,port-tx-pri6 = <0 0 0 0 0>;
+        qca,port-tx-pri7 = <0 0 0 0 0>;
+    };
+};
+
+&gmac0 {
+    status = "okay";
+    qca,eth-mac = [00 00 00 00 00 00];
+    phy-handle = <&mdio0 0>;
+    phy-mode = "rgmii";
+    qca,rxq-split = <1>;
+    qca,txq-limit = <1024>;
+    qca,rxq-limit = <1024>;
+};
+
+&gmac1 {
+    status = "okay";
+    qca,eth-mac = [00 00 00 00 00 01];
+    phy-handle = <&mdio0 1>;
+    phy-mode = "rgmii";
+    qca,rxq-split = <1>;
+    qca,txq-limit = <1024>;
+    qca,rxq-limit = <1024>;
+};
+
+&gmac2 {
+    status = "okay";
+    qca,eth-mac = [00 00 00 00 00 02];
+    phy-handle = <&mdio0 2>;
+    phy-mode = "rgmii";
+    qca,rxq-split = <1>;
+    qca,txq-limit = <1024>;
+    qca,rxq-limit = <1024>;
+};
+
+&gmac3 {
+    status = "okay";
+    qca,eth-mac = [00 00 00 00 00 03];
+    phy-handle = <&mdio0 3>;
+    phy-mode = "rgmii";
+    qca,rxq-split = <1>;
+    qca,txq-limit = <1024>;
+    qca,rxq-limit = <1024>;
+};
+
+&gmac4 {
+    status = "okay";
+    qca,eth-mac = [00 00 00 00 00 04];
+    phy-handle = <&mdio0 4>;
+    phy-mode = "rgmii";
+    qca,rxq-split = <1>;
+    qca,txq-limit = <1024>;
+    qca,rxq-limit = <1024>;
+};
