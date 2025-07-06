@@ -66,6 +66,30 @@ jobs:
         curl -fsSL https://raw.githubusercontent.com/openwrt/openwrt/master/scripts/feeds -o scripts/feeds
         chmod +x scripts/feeds
 
+    - name: Check and Fix feeds.conf.default
+      run: |
+        cd $GITHUB_WORKSPACE
+        echo "===== feeds.conf.default 内容 ====="
+        cat feeds.conf.default || echo "feeds.conf.default 不存在"
+        
+        # 如果feeds.conf.default不存在，创建默认配置
+        if [ ! -f "feeds.conf.default" ]; then
+          echo "创建默认feeds.conf.default"
+          cat > feeds.conf.default << EOF
+          src-git base https://github.com/openwrt/openwrt.git
+          src-git luci https://github.com/openwrt/luci.git
+          src-git routing https://github.com/openwrt/routing.git
+          src-git telephony https://github.com/openwrt/telephony.git
+          src-git management https://github.com/openwrt/management.git
+          EOF
+        fi
+        
+        # 检查自定义feeds配置
+        if [ -f "feeds.conf" ]; then
+          echo "===== feeds.conf 内容 ====="
+          cat feeds.conf
+        fi
+
     - name: Debug Feeds Command
       run: |
         cd $GITHUB_WORKSPACE
@@ -74,9 +98,25 @@ jobs:
         echo "Perl版本: $(perl --version | head -n 1)"
         echo "尝试执行feeds命令..."
         ./scripts/feeds --help
-        ./scripts/feeds list
-        ./scripts/feeds update -a || { echo "更新feeds失败"; cat ./feeds.conf; exit 1; }
+        
+        # 清理现有feeds目录
+        rm -rf feeds
+        
+        # 强制更新所有feeds
+        echo "===== 强制更新所有feeds ====="
+        ./scripts/feeds update -a -f
+        
+        # 安装所有feeds
+        echo "===== 安装所有feeds ====="
         ./scripts/feeds install -a
+        
+        # 重建索引
+        echo "===== 重建feeds索引 ====="
+        ./scripts/feeds update -i
+        
+        # 列出所有feeds
+        echo "===== 列出所有feeds ====="
+        ./scripts/feeds list
 
     - name: Load Custom Configuration
       run: |
