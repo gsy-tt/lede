@@ -63,10 +63,11 @@ jobs:
 
     - name: Clone Source Code
       run: |
-        rm -rf lede  # 清理可能存在的旧目录
+        rm -rf lede  # 清理所有旧目录
         git clone $REPO_URL -b $REPO_BRANCH lede  # 克隆到lede目录
         cd lede
         echo "当前目录: $(pwd)"
+        ls -la  # 列出目录内容，确认结构
         echo "当前分支:"
         git branch --show-current
         # 检查源码仓库状态
@@ -145,14 +146,14 @@ jobs:
       if: failure()
       with:
         name: build-log
-        path: lede/logs  # 注意路径改为lede/logs
+        path: lede/logs
 
     - name: Upload Bin Directory
       uses: actions/upload-artifact@v4
       if: env.UPLOAD_BIN_DIR == 'true' && env.FIRMWARE_FOUND == 'true' && !cancelled()
       with:
         name: OpenWrt_bin
-        path: lede/bin  # 注意路径改为lede/bin
+        path: lede/bin
 
     - name: Organize Firmware Files
       id: organize
