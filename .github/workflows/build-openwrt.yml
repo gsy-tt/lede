@@ -16,7 +16,7 @@ on:
 
 env:
   REPO_URL: https://github.com/gsy-tt/lede.git
-  REPO_BRANCH: main
+  REPO_BRANCH: master  # 修改为实际的分支名称
   CONFIG_FILE: .config
   DIY_P1_SH: diy-part1.sh
   DIY_P2_SH: diy-part2.sh
@@ -55,11 +55,19 @@ jobs:
         sudo apt-get -y autoremove --purge
         sudo apt-get clean
 
+    - name: Check Repository Branches
+      run: |
+        echo "检查仓库分支..."
+        git ls-remote --heads $REPO_URL
+        echo "如果上面没有列出'$REPO_BRANCH'分支，请更新REPO_BRANCH变量"
+
     - name: Clone Source Code
       run: |
-        rm -rf openwrt  # 确保完全清理旧的源码
-        git clone $REPO_URL -b $REPO_BRANCH openwrt
+        rm -rf openwrt
+        git clone $REPO_URL -b $REPO_BRANCH openwrt || git clone $REPO_URL openwrt  # 尝试使用默认分支
         cd openwrt
+        echo "当前分支:"
+        git branch --show-current
         # 检查源码仓库状态
         echo "源码仓库信息:"
         git log -1
