@@ -1,0 +1,16 @@
+name: SSH into GitHub Actions runner
+
+on:
+  workflow_dispatch:  # 允许手动触发工作流
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  # 或其他虚拟机类型
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true  # 限制只有触发工作流的用户可以访问
