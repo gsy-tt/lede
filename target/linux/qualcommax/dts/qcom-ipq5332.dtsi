@@ -1,0 +1,322 @@
+/* SPDX-License-Identifier: GPL-2.0 */
+/dts-v1/;
+
+#include <dt-bindings/interrupt-controller/arm-gic.h>
+#include <dt-bindings/clock/qcom,gcc-ipq5332.h>
+#include <dt-bindings/reset/qcom,reset.h>
+
+/ {
+    #address-cells = <2>;
+    #size-cells = <2>;
+    compatible = "qcom,ipq5332", "qcom,ipq53xx";
+    interrupt-parent = <&gic>;
+
+    cpus {
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        cpu@0 {
+            device_type = "cpu";
+            compatible = "arm,cortex-a53";
+            reg = <0>;
+            enable-method = "psci";
+            cpu-idle-states = <&cpu_cluster0_core0_retention>;
+            operating-points-v2 = <&cpu_cluster0_opp_table>;
+            power-domains = <&pd_cc_cpu0>;
+            clock-latency = <200000>;
+        };
+
+        cpu@1 {
+            device_type = "cpu";
+            compatible = "arm,cortex-a53";
+            reg = <1>;
+            enable-method = "psci";
+            cpu-idle-states = <&cpu_cluster0_core1_retention>;
+            operating-points-v2 = <&cpu_cluster0_opp_table>;
+            power-domains = <&pd_cc_cpu1>;
+            clock-latency = <200000>;
+        };
+
+        cpu@2 {
+            device_type = "cpu";
+            compatible = "arm,cortex-a53";
+            reg = <2>;
+            enable-method = "psci";
+            cpu-idle-states = <&cpu_cluster0_core2_retention>;
+            operating-points-v2 = <&cpu_cluster0_opp_table>;
+            power-domains = <&pd_cc_cpu2>;
+            clock-latency = <200000>;
+        };
+
+        cpu@3 {
+            device_type = "cpu";
+            compatible = "arm,cortex-a53";
+            reg = <3>;
+            enable-method = "psci";
+            cpu-idle-states = <&cpu_cluster0_core3_retention>;
+            operating-points-v2 = <&cpu_cluster0_opp_table>;
+            power-domains = <&pd_cc_cpu3>;
+            clock-latency = <200000>;
+        };
+    };
+
+    memory-controller@10000000 {
+        compatible = "qcom,ipq5332-l3cache";
+        reg = <0x0 0x10000000 0x0 0x1000000>;
+        interrupts = <GIC_SPI 47 IRQ_TYPE_LEVEL_HIGH>;
+        clocks = <&gcc GCC_L3_AHB_CLK>;
+        clock-names = "ahb";
+        resets = <&gcc GCC_L3_BCR>;
+        reset-names = "bcr";
+    };
+
+    /* 中断控制器 */
+    gic: interrupt-controller@10080000 {
+        compatible = "arm,gic-v3";
+        reg = <0x0 0x10080000 0x0 0x10000>,
+              <0x0 0x10090000 0x0 0x20000>;
+        interrupt-controller;
+        #interrupt-cells = <3>;
+        interrupts = <GIC_SPI 9 IRQ_TYPE_LEVEL_HIGH>;
+        interrupt-parent = <&intc>;
+    };
+
+    /* 通用中断控制器 */
+    intc: interrupt-controller@10010000 {
+        compatible = "qcom,ipq5332-gic";
+        reg = <0x0 0x10010000 0x0 0x10000>;
+        interrupt-controller;
+        #interrupt-cells = <2>;
+    };
+
+    /* 时钟控制器 */
+    gcc: clock-controller@10002000 {
+        compatible = "qcom,gcc-ipq5332";
+        reg = <0x0 0x10002000 0x0 0x40000>;
+        #clock-cells = <1>;
+        #reset-cells = <1>;
+        clocks = <&gcc GCC_GCC_CLK>;
+        clock-names = "gcc";
+    };
+
+    /* 复位控制器 */
+    rstc: reset-controller@10002000 {
+        compatible = "qcom,gcc-ipq5332-reset";
+        reg = <0x0 0x10002000 0x0 0x40000>;
+        #reset-cells = <1>;
+    };
+
+    /* 串口控制器 */
+    uart0: serial@10030000 {
+        compatible = "qcom,ipq5332-uart";
+        reg = <0x0 0x10030000 0x0 0x1000>;
+        interrupts = <GIC_SPI 64 IRQ_TYPE_LEVEL_HIGH>;
+        clocks = <&gcc GCC_UART0_APPS_CLK>,
+                 <&gcc GCC_UART0_APPS_CLK_SRC>;
+        clock-names = "core", "iface";
+        resets = <&gcc GCC_UART0_BCR>;
+        reset-names = "bcr";
+        current-speed = <115200>;
+        status = "disabled";
+    };
+
+    /* 以太网控制器 */
+    ethernet: ethernet@100a0000 {
+        compatible = "qcom,ipq5332-gmac";
+        reg = <0x0 0x100a0000 0x0 0x20000>;
+        interrupts = <GIC_SPI 92 IRQ_TYPE_LEVEL_HIGH>;
+        clocks = <&gcc GCC_ETH_AHB_CLK>,
+                 <&gcc GCC_ETH_PHY_AUX_CLK>,
+                 <&gcc GCC_ETH_PHY_AUX_CLK_SRC>;
+        clock-names = "ahb", "tx", "rx";
+        resets = <&gcc GCC_ETH_BCR>;
+        reset-names = "bcr";
+        qcom,eth-link-mode = <0>;  /* 默认为1G模式，可在设备树中覆盖 */
+        qcom,mdio-bus = <&mdio>;
+        phy-handle = <&switch_port5>;
+        status = "disabled";
+    };
+
+    /* MDIO总线 */
+    mdio: mdio@100a4000 {
+        compatible = "qcom,ipq5332-mdio";
+        reg = <0x0 0x100a4000 0x0 0x1000>;
+        #address-cells = <1>;
+        #size-cells = <0>;
+        clocks = <&gcc GCC_ETH_MDIO_CLK>;
+        clock-names = "mdio";
+        resets = <&gcc GCC_ETH_MDIO_BCR>;
+        reset-names = "bcr";
+        status = "disabled";
+    };
+
+    /* USB3.0控制器 */
+    usb3_0: usb3@100c0000 {
+        compatible = "qcom,ipq5332-usb3";
+        reg = <0x0 0x100c0000 0x0 0x100000>;
+        interrupts = <GIC_SPI 112 IRQ_TYPE_LEVEL_HIGH>;
+        clocks = <&gcc GCC_USB30_AHB_CLK>,
+                 <&gcc GCC_USB30_AXI_CLK>,
+                 <&gcc GCC_USB30_MASTER_CLK>,
+                 <&gcc GCC_USB30_MASTER_CLK_SRC>,
+                 <&gcc GCC_USB30_SLEEP_CLK>,
+                 <&gcc GCC_USB30_SLV_ICE_CORE_CLK>,
+                 <&gcc GCC_USB30_SLV_ICE_CORE_CLK_SRC>,
+                 <&gcc GCC_USB30_SLV_Q2A_CLK>;
+        clock-names = "ahb", "axi", "master", "master_src", "sleep",
+                      "slv_ice_core", "slv_ice_core_src", "slv_q2a";
+        resets = <&gcc GCC_USB30_BCR>;
+        reset-names = "bcr";
+        phys = <&usb3_phy0>;
+        phy-names = "usb3-phy";
+        status = "disabled";
+    };
+
+    /* USB3.0 PHY */
+    usb3_phy0: usb3-phy@100e0000 {
+        compatible = "qcom,ipq5332-usb3-phy";
+        reg = <0x0 0x100e0000 0x0 0x10000>;
+        clocks = <&gcc GCC_USB_PHY_PIPE_CLK>,
+                 <&gcc GCC_USB_PHY_PIPE_CLK_SRC>;
+        clock-names = "pipe", "pipe_src";
+        resets = <&gcc GCC_USB30_BCR>;
+        reset-names = "bcr";
+        status = "disabled";
+    };
+
+    /* PCIe控制器 */
+    pcie0: pcie@10100000 {
+        compatible = "qcom,ipq5332-pcie";
+        reg = <0x0 0x10100000 0x0 0x100000>;
+        interrupts = <GIC_SPI 123 IRQ_TYPE_LEVEL_HIGH>;
+        clocks = <&gcc GCC_PCIE0_AHB_CLK>,
+                 <&gcc GCC_PCIE0_AXI_CLK>,
+                 <&gcc GCC_PCIE0_PIPE_CLK>,
+                 <&gcc GCC_PCIE0_PIPE_CLK_SRC>,
+                 <&gcc GCC_PCIE0_PIPE_REF_CLK>,
+                 <&gcc GCC_PCIE0_SLV_ICE_CORE_CLK>,
+                 <&gcc GCC_PCIE0_SLV_PIPE_CLK>,
+                 <&gcc GCC_PCIE0_SLV_Q2A_CLK>;
+        clock-names = "ahb", "axi", "pipe", "pipe_src", "ref",
+                      "slv_ice_core", "slv_pipe", "slv_q2a";
+        resets = <&gcc GCC_PCIE0_BCR>;
+        reset-names = "bcr";
+        #address-cells = <3>;
+        #size-cells = <2>;
+        ranges = <0x02000000 0x0 0x40000000 0x0 0x40000000 0x0 0x40000000>,
+                 <0x01000000 0x0 0x80000000 0x0 0x80000000 0x0 0x20000000>;
+        bus-range = <0x00 0xff>;
+        num-lanes = <2>;
+        device_type = "pci";
+        status = "disabled";
+
+        /* 中断映射 */
+        interrupt-map-mask = <0x0 0x0 0x0 0x7>;
+        interrupt-map = <0x0 0x0 0x0 0x1 &gic GIC_SPI 131 IRQ_TYPE_LEVEL_HIGH>,
+                        <0x0 0x0 0x0 0x2 &gic GIC_SPI 132 IRQ_TYPE_LEVEL_HIGH>,
+                        <0x0 0x0 0x0 0x3 &gic GIC_SPI 133 IRQ_TYPE_LEVEL_HIGH>,
+                        <0x0 0x0 0x0 0x4 &gic GIC_SPI 134 IRQ_TYPE_LEVEL_HIGH>;
+    };
+
+    /* 2.4G Wi-Fi控制器 */
+    wifi0: wifi@10200000 {
+        compatible = "qcom,ipq5332-wifi";
+        reg = <0x0 0x10200000 0x0 0x10000>;
+        interrupts = <GIC_SPI 125 IRQ_TYPE_LEVEL_HIGH>;
+        clocks = <&gcc GCC_WLAN_AHB_CLK>,
+                 <&gcc GCC_WLAN_CFG_CLK>;
+        clock-names = "ahb", "cfg";
+        resets = <&gcc GCC_WLAN_BCR>;
+        reset-names = "bcr";
+        status = "disabled";
+    };
+
+    /* eMMC控制器 */
+    sdhc_1: sdhc@10280000 {
+        compatible = "qcom,ipq5332-sdhc";
+        reg = <0x0 0x10280000 0x0 0x10000>;
+        interrupts = <GIC_SPI 127 IRQ_TYPE_LEVEL_HIGH>;
+        clocks = <&gcc GCC_SDCC2_AHB_CLK>,
+                 <&gcc GCC_SDCC2_APPS_CLK>,
+                 <&gcc GCC_SDCC2_APPS_CLK_SRC>;
+        clock-names = "ahb", "core", "iface";
+        resets = <&gcc GCC_SDCC2_BCR>;
+        reset-names = "bcr";
+        bus-width = <4>;
+        status = "disabled";
+    };
+
+    /* GPIO控制器 */
+    gpio: gpio-controller@10300000 {
+        compatible = "qcom,ipq5332-gpio";
+        reg = <0x0 0x10300000 0x0 0x10000>;
+        #gpio-cells = <2>;
+        interrupts = <GIC_SPI 70 IRQ_TYPE_LEVEL_HIGH>;
+        gpio-controller;
+        interrupt-controller;
+        #interrupt-cells = <2>;
+        status = "disabled";
+    };
+
+    /* SPI控制器 */
+    spi0: spi@10380000 {
+        compatible = "qcom,ipq5332-spi";
+        reg = <0x0 0x10380000 0x0 0x10000>;
+        interrupts = <GIC_SPI 72 IRQ_TYPE_LEVEL_HIGH>;
+        clocks = <&gcc GCC_SPI0_APPS_CLK>;
+        clock-names = "spi";
+        resets = <&gcc GCC_SPI0_BCR>;
+        reset-names = "bcr";
+        #address-cells = <1>;
+        #size-cells = <0>;
+        status = "disabled";
+    };
+
+    /* I2C控制器 */
+    i2c0: i2c@10400000 {
+        compatible = "qcom,ipq5332-i2c";
+        reg = <0x0 0x10400000 0x0 0x10000>;
+        interrupts = <GIC_SPI 74 IRQ_TYPE_LEVEL_HIGH>;
+        clocks = <&gcc GCC_I2C0_APPS_CLK>;
+        clock-names = "i2c";
+        resets = <&gcc GCC_I2C0_BCR>;
+        reset-names = "bcr";
+        #address-cells = <1>;
+        #size-cells = <0>;
+        status = "disabled";
+    };
+
+    /* 电源域控制器 */
+    pm8005: pmic@0 {
+        compatible = "qcom,pm8005";
+        reg = <0>;
+        #address-cells = <1>;
+        #size-cells = <0>;
+        status = "disabled";
+
+        /* 电源域定义 */
+        pd_cc_cpu0: pd@0 {
+            compatible = "qcom,pd-cc";
+            reg = <0>;
+            phandle = <&pd_cc_cpu0>;
+        };
+
+        pd_cc_cpu1: pd@1 {
+            compatible = "qcom,pd-cc";
+            reg = <1>;
+            phandle = <&pd_cc_cpu1>;
+        };
+
+        pd_cc_cpu2: pd@2 {
+            compatible = "qcom,pd-cc";
+            reg = <2>;
+            phandle = <&pd_cc_cpu2>;
+        };
+
+        pd_cc_cpu3: pd@3 {
+            compatible = "qcom,pd-cc";
+            reg = <3>;
+            phandle = <&pd_cc_cpu3>;
+        };
+    };
+};

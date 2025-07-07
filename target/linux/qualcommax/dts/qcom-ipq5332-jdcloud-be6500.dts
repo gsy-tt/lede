@@ -1,0 +1,194 @@
+/dts-v1/;
+#include <dt-bindings/clock/qcom,gcc-ipq5332.h>
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/usb/otg.h>
+#include <dt-bindings/reset/qcom,reset.h>
+#include "qcom-ipq5332.dtsi"  // IPQ5332通用配置
+
+/ {
+    compatible = "qcom,ipq5332", "qcom,ipq53xx", "jdcloud,be6500";
+    model = "JDCloud BE6500";
+
+    chosen {
+        bootargs = "console=ttyMSM0,115200n8 rootwait";
+    };
+
+    memory {
+        reg = <0x0 0x40000000>;  // 1GB DDR4
+    };
+
+    aliases {
+        serial0 = &uart0;
+        led-boot = &led_power;
+        led-failsafe = &led_failsafe;
+        led-running = &led_running;
+        led-wifi2g = &led_wifi2g;
+        led-wifi5g = &led_wifi5g;
+    };
+
+    // LED配置
+    leds {
+        compatible = "gpio-leds";
+
+        led_power: power {
+            label = "be6500:blue:power";
+            gpios = <&gpio 10 GPIO_ACTIVE_HIGH>;  // 需根据原理图调整
+            default-state = "on";
+        };
+
+        led_failsafe: failsafe {
+            label = "be6500:red:failsafe";
+            gpios = <&gpio 11 GPIO_ACTIVE_HIGH>;
+            default-state = "off";
+        };
+
+        led_running: running {
+            label = "be6500:green:running";
+            gpios = <&gpio 12 GPIO_ACTIVE_HIGH>;
+            default-state = "off";
+        };
+
+        led_wifi2g: wifi2g {
+            label = "be6500:green:wifi2g";
+            gpios = <&gpio 13 GPIO_ACTIVE_HIGH>;
+            default-state = "off";
+        };
+
+        led_wifi5g: wifi5g {
+            label = "be6500:green:wifi5g";
+            gpios = <&gpio 14 GPIO_ACTIVE_HIGH>;
+            default-state = "off";
+        };
+
+        // Joy按键灯光控制
+        led_joy: joy {
+            label = "be6500:rgb:joy";
+            gpios = <&gpio 15 GPIO_ACTIVE_HIGH>;  // RGB控制引脚
+            default-state = "off";
+        };
+    };
+
+    // 按键配置
+    keys {
+        compatible = "gpio-keys";
+
+        reset {
+            label = "reset";
+            gpios = <&gpio 16 GPIO_ACTIVE_LOW>;  // 复位键引脚
+            linux,code = <KEY_RESTART>;
+            debounce-interval = <200>;
+        };
+
+        joy {
+            label = "joy";
+            gpios = <&gpio 17 GPIO_ACTIVE_LOW>;  // Joy按键引脚
+            linux,code = <KEY_PROG1>;
+            debounce-interval = <200>;
+        };
+    };
+
+    // 以太网控制器配置
+    &ethernet {
+        status = "okay";
+        qcom,eth-link-mode = <2>;  // 2.5G模式
+    };
+
+    // MDIO总线配置（连接QCA8386交换机）
+    &mdio {
+        status = "okay";
+
+        switch@0 {
+            compatible = "qca,qca8386";
+            reg = <0>;
+            qca,ports = <4>;  // 4个物理端口
+            qca,switch-mode = <2>;  // 2.5G模式
+
+            ports {
+                #address-cells = <1>;
+                #size-cells = <0>;
+
+                port@0 {  // WAN口
+                    reg = <0>;
+                    label = "wan";
+                    phy-handle = <&switch_port0>;
+                    phy-mode = "rgmii";
+                };
+
+                port@1 {  // LAN1
+                    reg = <1>;
+                    label = "lan1";
+                    phy-handle = <&switch_port1>;
+                    phy-mode = "rgmii";
+                };
+
+                port@2 {  // LAN2
+                    reg = <2>;
+                    label = "lan2";
+                    phy-handle = <&switch_port2>;
+                    phy-mode = "rgmii";
+                };
+
+                port@3 {  // LAN3
+                    reg = <3>;
+                    label = "lan3";
+                    phy-handle = <&switch_port3>;
+                    phy-mode = "rgmii";
+                };
+            };
+        };
+    };
+
+    // QCA8386交换机端口引用
+    &qca8386 {
+        switch_port0: port@0 { reg = <0>; };
+        switch_port1: port@1 { reg = <1>; };
+        switch_port2: port@2 { reg = <2>; };
+        switch_port3: port@3 { reg = <3>; };
+    };
+
+    // USB3.0控制器
+    &usb3_0 {
+        status = "okay";
+        dr_mode = "host";
+    };
+
+    // 2.4G Wi-Fi（IPQ5332集成）
+    &wifi0 {
+        status = "okay";
+        compatible = "qcom,ath10k";
+        reg = <0>;
+        interrupts = <GIC_SPI 125 IRQ_TYPE_LEVEL_HIGH>;
+        qcom,ath10k-calibration-data = <&art 0x1000 0x1000>;  // 校准数据位置
+    };
+
+    // 5G Wi-Fi（QCN6224）
+    &pcie0 {
+        status = "okay";
+
+        qcn6224: wifi@0,0 {
+            compatible = "qcom,ath11k";
+            reg = <0 0 0 0 0>;
+            interrupts = <GIC_SPI 123 IRQ_TYPE_LEVEL_HIGH>;
+            qcom,ath11k-calibration-data = <&art 0x2000 0x2000>;  // 校准数据位置
+
+            // FEM控制（QPF4559 PA）
+            qcom,ath11k-fem {
+                tx-enable-gpios = <&gpio 20 GPIO_ACTIVE_HIGH>;  // PA使能引脚
+                rx-enable-gpios = <&gpio 21 GPIO_ACTIVE_HIGH>;  // LNA使能引脚
+                ant-gpios = <&gpio 22 GPIO_ACTIVE_HIGH>;  // 天线切换引脚
+            };
+        };
+    };
+
+    // eMMC存储
+    &sdhc_1 {
+        status = "okay";
+        non-removable;
+        vmmc-supply = <&pm8005_l14>;  // 电源供应
+        bus-width = <8>;  // 8位总线
+        cap-mmc-highspeed;
+        cap-sd-highspeed;
+        mmc-hs200-1_8v;
+        disable-wp;
+    };
+};
