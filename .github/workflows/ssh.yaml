@@ -10,7 +10,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 启动 tmate 会话
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.debug == 'true'
         with:
-          limit-access-to-actor: true  # 限制只有触发工作流的用户可以访问
+          timeout-minutes: 60  # 会话超时时间（分钟）
+          limit-access-to-actor: true  # 仅允许触发者连接
