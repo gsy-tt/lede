@@ -5,7 +5,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # 或其他虚拟机类型
+    runs-on: ubuntu-22.04  # 或其他虚拟机类型
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
