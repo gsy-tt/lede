@@ -13,7 +13,6 @@ jobs:
       # 启动 tmate 会话
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
-        if: github.event_name == 'workflow_dispatch' && github.event.inputs.debug == 'true'
         with:
           timeout-minutes: 60  # 会话超时时间（分钟）
           limit-access-to-actor: true  # 仅允许触发者连接
