@@ -1,0 +1,6 @@
+/dts-v1/;
+#include "dt-bindings/clock/qcom-gcc-ipq5332.h"  // 只保留第2行的头文件
+
+/ {
+    model = "Test";
+};

@@ -3,6 +3,7 @@
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/usb/otg.h>
 #include <dt-bindings/reset/qcom,reset.h>
+#include <dt-bindings/interrupt-controller/arm-gic.h>
 #include "qcom-ipq5332.dtsi"  // IPQ5332通用配置
 
 / {
