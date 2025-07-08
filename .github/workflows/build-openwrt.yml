@@ -97,7 +97,8 @@ jobs:
 
     - name: Download Package
       run: |
-        cd $GITHUB_WORKSPACE
+        make target/linux/clean
+        make target/linux/prepare V=s
         make download -j8
         find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;
