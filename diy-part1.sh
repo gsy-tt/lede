@@ -16,8 +16,6 @@ echo 'src-git helloworld https://github.com/fw876/helloworld' >>feeds.conf.defau
 git clone https://github.com/jerrykuku/luci-theme-argon.git package/lean/luci-theme-argon
 git clone https://github.com/jerrykuku/luci-app-argon-config.git package/lean/luci-app-argon-config
 
-# 添加IPQ5332设备支持
-cp -r ../target/linux/ipq807x target/linux/
 
 # 添加内存优化配置
 cat >> .config << EOF
