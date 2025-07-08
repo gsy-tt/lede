@@ -65,6 +65,7 @@ jobs:
 
     - name: Check and Fix feeds.conf.default
       run: |
+        cp .config .config-bak
         echo "===== feeds.conf.default 内容 ====="
         cat feeds.conf.default || echo "feeds.conf.default 不存在"
       
@@ -88,12 +89,11 @@ jobs:
 
     - name: Load Custom Configuration
       run: |  
-        head -n 5 .config
-        head -n 5 .config.old
+        head -n 5 .config-bak
+    
         
-        #cp -r .config.old .config
-        #cat .config | grep TARGET_
-        #cat .config | grep BE6500
+        cp -r .config-bak .config
+        
 
     - name: Download Package
       run: |
