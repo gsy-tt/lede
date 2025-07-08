@@ -97,16 +97,6 @@ jobs:
 
     - name: Debug Feeds Command
       run: |
-        cd $GITHUB_WORKSPACE
-        echo "当前目录: $(pwd)"
-        echo "feeds脚本权限: $(ls -l scripts/feeds)"
-        echo "Perl版本: $(perl --version | head -n 1)"
-        echo "尝试执行feeds命令..."
-        ./scripts/feeds --help
-        
-        # 清理现有feeds目录
-        rm -rf feeds
-        
         # 强制更新所有feeds
         echo "===== 强制更新所有feeds ====="
         ./scripts/feeds update -a -f
@@ -130,7 +120,7 @@ jobs:
         chmod +x $DIY_P1_SH $DIY_P2_SH
         cd $GITHUB_WORKSPACE
         ../$DIY_P1_SH
-        make defconfig
+        cp -r .config.old .config
         cat .config | grep TARGET_
         cat .config | grep BE6500
 
