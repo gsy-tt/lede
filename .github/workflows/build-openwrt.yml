@@ -115,10 +115,6 @@ jobs:
 
     - name: Load Custom Configuration
       run: |
-        [ -e files ] && cp -r files $GITHUB_WORKSPACE/files
-        [ -e $CONFIG_FILE ] && cp $CONFIG_FILE $GITHUB_WORKSPACE/.config
-        chmod +x $DIY_P1_SH $DIY_P2_SH
-        cd $GITHUB_WORKSPACE
         ../$DIY_P1_SH
         cp -r .config.old .config
         cat .config | grep TARGET_
