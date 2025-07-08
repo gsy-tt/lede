@@ -63,38 +63,11 @@ jobs:
         sudo apt-get clean
 
 
-
-    - name: Update Feeds Script
-      run: |
-        cd $GITHUB_WORKSPACE
-        # 备份原始脚本
-        cp scripts/feeds scripts/feeds.bak
-        # 从官方源更新feeds脚本
-        curl -fsSL https://raw.githubusercontent.com/openwrt/openwrt/master/scripts/feeds -o scripts/feeds
-        chmod +x scripts/feeds
-
     - name: Check and Fix feeds.conf.default
       run: |
-        cd $GITHUB_WORKSPACE
         echo "===== feeds.conf.default 内容 ====="
         cat feeds.conf.default || echo "feeds.conf.default 不存在"
-        
-        # 如果feeds.conf.default不存在，创建默认配置
-        if [ ! -f "feeds.conf.default" ]; then
-          echo "创建默认feeds.conf.default"
-          echo "src-git base https://github.com/openwrt/openwrt.git" >> feeds.conf.default
-          echo "src-git luci https://github.com/openwrt/luci.git"  >> feeds.conf.default
-          echo "src-git routing https://github.com/openwrt/routing.git" >> feeds.conf.default
-          echo "src-git telephony https://github.com/openwrt/telephony.git" >> feeds.conf.default
-          echo "src-git management https://github.com/openwrt/management.git" >> feeds.conf.default
-        fi
-        
-        # 检查自定义feeds配置
-        if [ -f "feeds.conf" ]; then
-          echo "===== feeds.conf 内容 ====="
-          cat feeds.conf
-        fi
-
+      
     - name: Debug Feeds Command
       run: |
         # 强制更新所有feeds
@@ -114,8 +87,8 @@ jobs:
         #./scripts/feeds list
 
     - name: Load Custom Configuration
-      run: |
-      
+      run: |  
+        cat .config.old
         cp -r .config.old .config
         cat .config | grep TARGET_
         cat .config | grep BE6500
