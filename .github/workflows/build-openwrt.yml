@@ -115,7 +115,7 @@ jobs:
 
     - name: Load Custom Configuration
       run: |
-        ../$DIY_P1_SH
+      
         cp -r .config.old .config
         cat .config | grep TARGET_
         cat .config | grep BE6500
