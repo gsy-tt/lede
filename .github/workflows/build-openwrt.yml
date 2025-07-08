@@ -88,10 +88,12 @@ jobs:
 
     - name: Load Custom Configuration
       run: |  
-        cat .config.old
-        cp -r .config.old .config
-        cat .config | grep TARGET_
-        cat .config | grep BE6500
+        head -n 5 .config
+        head -n 5 .config.old
+        
+        #cp -r .config.old .config
+        #cat .config | grep TARGET_
+        #cat .config | grep BE6500
 
     - name: Download Package
       run: |
