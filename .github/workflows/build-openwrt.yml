@@ -26,7 +26,7 @@ jobs:
 
     - name: 替换设备树文件
       run: |
-        cp ../target/linux/ipq50xx/dts/qcom-ipq5332-be6500.dts openwrt/target/linux/ipq50xx/dts/
+        cp target/linux/ipq50xx/dts/qcom-ipq5332-be6500.dts openwrt/target/linux/ipq50xx/dts/
         echo 'dtb-$(BOARD) += qcom-ipq5332-be6500' >> openwrt/target/linux/ipq50xx/Makefile
 
     - name: 应用编译配置
