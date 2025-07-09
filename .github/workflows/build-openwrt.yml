@@ -15,7 +15,11 @@ jobs:
     - name: 安装依赖
       run: |
         sudo apt update && sudo apt install -y build-essential libncurses5-dev \
-        flex bison libssl-dev libelf-dev git libtool autoconf
+        flex bison libssl-dev libelf-dev git libtool autoconf python3-netifaces build-essential ccache ecj fastjar file g++ gawk \
+          gettext git java-propose-classpath libelf-dev libncurses5-dev \
+          libncursesw5-dev libssl-dev python3 python3-distutils python3-setuptools \
+          python3-dev rsync subversion swig time unzip wget xmlto zlib1g-dev \
+          quilt autopoint libtool-bin gperf flex bison gettext-base asciidoc dos2unix
 
     - name: 初始化OpenWrt源码
       run: |
