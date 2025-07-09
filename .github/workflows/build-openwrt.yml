@@ -40,6 +40,8 @@ jobs:
       run: |
         cd openwrt
         make -j$(nproc) V=s
+        echo "********************************查找固件二进制文件**************************"
+        find bin/ -name "*.bin"
 
     - name: 上传固件
       uses: actions/upload-artifact@v4
