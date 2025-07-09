@@ -39,7 +39,7 @@ jobs:
         cd openwrt
         cp ../.config .config
         make defconfig
-        cat .config
+        head -n 5 .config
 
     - name: 开始编译
       run: |
