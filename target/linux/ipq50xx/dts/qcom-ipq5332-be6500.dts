@@ -1,0 +1,93 @@
+/dts-v1/;
+#include "qcom-ipq5332.dtsi"
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/input/input.h>
+
+/ {
+    model = "JD Cloud BE6500 (RE-CS-06)";
+    compatible = "qcom,ipq5332-be6500", "qcom,ipq5332";
+
+    aliases {
+        serial0 = &blsp1_uart1;
+        led-boot = &led_power;
+        led-failsafe = &led_power;
+        led-running = &led_power;
+        led-upgrade = &led_power;
+    };
+
+    memory@0 {
+        device_type = "memory";
+        reg = <0x0 0x40000000>; // 1GB RAM
+    };
+
+    chosen {
+        bootargs = "rootwait root=PARTUUID=0000 rootfstype=squashfs,jffs2 noinitrd console=ttyMSM0,115200n8";
+    };
+
+    soc {
+        usb3@1a00000 {
+            status = "okay";
+        };
+    };
+
+    leds {
+        compatible = "gpio-leds";
+
+        led_power: power {
+            label = "be6500:blue:power";
+            gpios = <&tlmm 14 GPIO_ACTIVE_HIGH>;
+            default-state = "on";
+        };
+
+        joy_button_light: joy {
+            label = "be6500:blue:joy";
+            gpios = <&tlmm 15 GPIO_ACTIVE_HIGH>;
+        };
+    };
+
+    keys {
+        compatible = "gpio-keys";
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        joy_button {
+            label = "Joy Button";
+            gpios = <&tlmm 16 GPIO_ACTIVE_LOW>;
+            linux,code = <KEY_RESTART>;
+        };
+    };
+};
+
+&pcie0 {
+    status = "okay";
+
+    wifi@0,0 {
+        compatible = "qcom,qcn6224-pci";
+        reg = <0x0 0x0>;
+        qcom,ath11k-calibration-data = [00 00 00 00];
+    };
+};
+
+&blsp1_uart1 {
+    status = "okay";
+};
+
+&eth0 {
+    status = "okay";
+    phy-handle = <&ethphy0>;
+    phy-mode = "sgmii";
+    qcom,emac-pdup = <1>;
+
+    fixed-link {
+        speed = <1000>;
+        full-duplex;
+    };
+};
+
+&mdio {
+    status = "okay";
+
+    ethphy0: ethernet-phy@0 {
+        reg = <0>;
+    };
+};
