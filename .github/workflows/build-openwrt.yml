@@ -44,6 +44,10 @@ jobs:
     - name: 开始编译
       run: |
         cd openwrt
+        cp .config .config.backup
+        export TERM=dumb
+        make olddefconfig
+        head -n 5 .config
         make -j$(nproc) V=s
         echo "********************************查找固件二进制文件**************************"
         find bin/ -name "*.bin"
