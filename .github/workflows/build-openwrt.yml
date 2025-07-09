@@ -1,185 +1,47 @@
-name: Build OpenWrt for BE6500
+name: Build OpenWrt for JD Cloud BE6500
 
 on:
-  workflow_dispatch:
-  release:
-    types: [published]
   push:
-    branches:
-      - main
-    paths:
-      - '.github/workflows/build-be6500.yml'
-      - 'target/linux/ipq807x/*'
-      - 'package/*'
-      - 'feeds.conf.default'
-      - 'scripts/*'
-
-env:
-  REPO_URL: https://github.com/gsy-tt/lede.git
-  REPO_BRANCH: master  # 修改为实际的分支名称
-  CONFIG_FILE: .config
-  DIY_P1_SH: diy-part1.sh
-  DIY_P2_SH: diy-part2.sh
-  UPLOAD_BIN_DIR: false
-  UPLOAD_FIRMWARE: true
-  UPLOAD_COWTRANSFER: false
-  UPLOAD_WETRANSFER: false
-  UPLOAD_RELEASE: true
-  TZ: Asia/Shanghai
+    branches: [main]
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
-
+    runs-on: ubuntu-latest
     steps:
-    - name: Checkout
+    - name: 检出代码
       uses: actions/checkout@v4
 
-    - name: Initialization Environment
-      env:
-        DEBIAN_FRONTEND: noninteractive
+    - name: 安装依赖
       run: |
-        
-        sudo dpkg --add-architecture i386  # 启用32位架构支持
-        sudo apt-get update
-        sudo apt install -y ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential \
-             bzip2 ccache clang cmake cpio curl device-tree-compiler flex gawk gcc-multilib g++-multilib gettext \
-             genisoimage git gperf haveged help2man intltool libc6-dev-i386 libelf-dev libfuse-dev libglib2.0-dev \
-             libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses5-dev libncursesw5-dev libpython3-dev \
-             libreadline-dev libssl-dev libtool llvm lrzsz msmtp ninja-build p7zip p7zip-full patch pkgconf \
-             python3 python3-pyelftools python3-setuptools qemu-utils rsync scons squashfs-tools subversion \
-             swig texinfo uglifyjs upx-ucl unzip vim wget xmlto xxd zlib1g-dev
-        sudo apt-get -y install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch python3 python2.7 unzip zlib1g-dev lib32gcc-s1 libc6-dev-i386 subversion flex uglifyjs git-core gcc-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler g++-multilib antlr3 gperf wget curl swig rsync
-        sudo apt-get install -y \
-            perl \
-            python3 \
-            python3-distutils \
-            python3-setuptools \
-            libxml-parser-perl \
-            libncurses5-dev \
-            gawk \
-            gettext
-        sudo apt-get -y autoremove --purge
-        sudo apt-get clean
+        sudo apt update && sudo apt install -y build-essential libncurses5-dev \
+        flex bison libssl-dev libelf-dev git libtool autoconf
 
-
-    - name: Check and Fix feeds.conf.default
+    - name: 初始化OpenWrt源码
       run: |
-        cp .config .config-bak
-        echo "===== feeds.conf.default 内容 ====="
-        cat feeds.conf.default || echo "feeds.conf.default 不存在"
-      
-    - name: Debug Feeds Command
-      run: |
-        # 强制更新所有feeds
-        echo "===== 强制更新所有feeds ====="
-        ./scripts/feeds update -a -f
-        
-        # 安装所有feeds
-        echo "===== 安装所有feeds ====="
+        git clone https://git.openwrt.org/openwrt/openwrt.git 
+        cd openwrt
+        ./scripts/feeds update -a
         ./scripts/feeds install -a
-        
-        # 重建索引
-        echo "===== 重建feeds索引 ====="
-        ./scripts/feeds update -i
-        
-        # 列出所有feeds
-        echo "===== 列出所有feeds ====="
-        #./scripts/feeds list
 
-    - name: Load Custom Configuration
-      run: |  
-        head -n 5 .config-bak
-    
-        
-        cp -r .config-bak .config
-        
-
-    - name: Download Package
+    - name: 替换设备树文件
       run: |
-        make target/linux/clean
-        make target/linux/prepare V=s
-        make download -j8
-        find dl -size -1024c -exec ls -l {} \;
-        find dl -size -1024c -exec rm -f {} \;
+        cp ../target/linux/ipq50xx/dts/qcom-ipq5332-be6500.dts openwrt/target/linux/ipq50xx/dts/
+        echo 'dtb-$(BOARD) += qcom-ipq5332-be6500' >> openwrt/target/linux/ipq50xx/Makefile
 
-    - name: Compile Firmware
-      id: compile
+    - name: 应用编译配置
       run: |
-        cd $GITHUB_WORKSPACE
-        echo -e "$(nproc) thread compile"
-        make -j$(nproc) || make -j1 V=s
-        echo "======================="
-        echo "Space usage:"
-        echo "======================="
-        df -h
-        echo "======================="
-        du -h --max-depth=1 ./ | sort -hr
-        # 检查是否生成了固件文件
-        if [ ! -d "bin/targets" ]; then
-          echo "未找到固件输出目录"
-          exit 1
-        fi
-        # 列出所有可用的目标目录
-        echo "可用的目标目录:"
-        ls -l bin/targets
-        # 保存固件状态
-        if [ -n "$(ls -A bin/targets 2>/dev/null)" ]; then
-          echo "FIRMWARE_FOUND=true" >> $GITHUB_ENV
-        else
-          echo "FIRMWARE_FOUND=false" >> $GITHUB_ENV
-        fi
+        cd openwrt
+        cp ../.config .config
+        make defconfig
 
-    - name: Upload Build Log
+    - name: 开始编译
+      run: |
+        cd openwrt
+        make -j$(nproc) V=s
+
+    - name: 上传固件
       uses: actions/upload-artifact@v4
-      if: failure()
       with:
-        name: build-log
-        path: $GITHUB_WORKSPACE/logs
-
-    - name: Upload Bin Directory
-      uses: actions/upload-artifact@v4
-      if: env.UPLOAD_BIN_DIR == 'true' && env.FIRMWARE_FOUND == 'true' && !cancelled()
-      with:
-        name: OpenWrt_bin
-        path: $GITHUB_WORKSPACE/bin
-
-    - name: Organize Firmware Files
-      id: organize
-      if: env.UPLOAD_FIRMWARE == 'true' && env.FIRMWARE_FOUND == 'true' && !cancelled()
-      run: |
-        cd $GITHUB_WORKSPACE/bin/targets/*/*
-        rm -rf packages
-        echo "FIRMWARE=$PWD" >> $GITHUB_ENV
-        echo "::set-output name=status::success"
-
-    - name: Upload Firmware to Artifacts
-      uses: actions/upload-artifact@v4
-      if: steps.organize.outputs.status == 'success' && !cancelled()
-      with:
-        name: OpenWrt_Firmware
-        path: ${{ env.FIRMWARE }}
-
-    - name: Upload Firmware to CowTransfer
-      if: env.UPLOAD_COWTRANSFER == 'true' && steps.organize.outputs.status == 'success' && !cancelled()
-      run: |
-        curl -sL https://git.io/cowtransfer | sh
-        ./cowtransfer upload -s -p 16 ${{ env.FIRMWARE }}/*
-
-    - name: Upload Firmware to WeTransfer
-      if: env.UPLOAD_WETRANSFER == 'true' && steps.organize.outputs.status == 'success' && !cancelled()
-      run: |
-        sudo apt-get install -y python3 python3-pip python3-setuptools
-        pip3 install wetransfer
-        wetransfer -s ${{ env.FIRMWARE }}/*
-
-    - name: Upload Firmware to Release
-      uses: softprops/action-gh-release@v1
-      if: env.UPLOAD_RELEASE == 'true' && github.event_name == 'release' && steps.organize.outputs.status == 'success' && !cancelled()
-      with:
-        files: ${{ env.FIRMWARE }}/*
-        tag_name: ${{ github.ref_name }}
-        body: |
-          OpenWrt Firmware for BE6500
-          Compiled by GitHub Actions
-          Date: $(date +%Y-%m-%d)
+        name: openwrt-be6500-firmware
+        path: openwrt/bin/targets/*
