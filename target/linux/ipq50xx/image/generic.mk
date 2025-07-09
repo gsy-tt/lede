@@ -1,0 +1,11 @@
+include $(TOPDIR)/rules.mk
+
+define Device/be6500
+  DEVICE_TITLE := JDY BE6500
+  DEVICE_DTS := qcom/ipq5018-be6500
+  IMAGE_SIZE := 128M
+  KERNEL_INITRAMFS_SUFFIX := .itb
+  KERNEL_INITRAMFS_PREFIX := ipq5xxx/
+endef
+
+TARGET_DEVICES += be6500
