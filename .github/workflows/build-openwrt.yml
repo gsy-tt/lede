@@ -27,6 +27,7 @@ jobs:
         cd openwrt
         ./scripts/feeds update -a
         ./scripts/feeds install -a
+        ./scripts/feeds install python3-netifaces libev libpam libtirpc liblzma libnetsnmp xcrypt
 
     - name: 替换设备树文件
       run: |
